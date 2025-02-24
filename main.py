@@ -1,10 +1,11 @@
 # bioKitPy module
 from bioKitPy import Sequence
 
-strand = Sequence("", "RNA")
+
+strand = Sequence("", "DNA")
 print(strand.get_info())
 print(strand.count_nucleotides())
-print(strand.nucleotide_percentage())
-print(strand.gc_content())
-print(strand.nucleotide_percentage(7))
-print(strand.gc_content(7))
+str2 = Sequence(strand.transcribe_dna(), "RNA")
+print(strand.translate_sequence())
+print(str2.translate_sequence())
+print(strand.codon_usage('K'))

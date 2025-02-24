@@ -1,6 +1,8 @@
+from dataclasses import replace
+
 from .structure import *
 import random
-from collections import Counter
+from collections import *
 
 class Sequence:
     '''A class to rapresent a biological sequence (DNA or RNA).
@@ -93,7 +95,65 @@ class Sequence:
         self.__check_indices(start, end)
         return ''.join(COMPLEMENT_DNA[nuc] for nuc in self.__seq[start:end][::-1])
 
-    def
+    def transcribe_dna(self, start=0, end=None):
+        """Transcribes a DNA sequence into RNA (T → U)."""
+        if self.__seq_type != 'DNA':
+            raise ValueError("Transcribe function is only available for DNA sequences.")
+        self.__check_indices(start, end)
+        tmp_seq = self.__seq[start:end]
+        return ''.join(tmp_seq.replace('T', 'U'))
+
+    def translate_sequence(self, start=0, end=None):
+        """Translates a DNA or RNA sequence into a protein sequence."""
+        self.__check_indices(start, end)
+        if end is None:
+            end = self.__length
+        return ''.join([CODON_TABLE[self.__seq_type][self.__seq[i:i+3]] for i in range(start,end-2,3)])
+
+    def codon_usage(self, amino_acid, start=0, end=None):
+        """
+        Computes the relative frequency of codons that code for a given amino acid.
+
+        Parameters:
+        ----------
+        amino_acid : str
+            The amino acid for which to compute codon usage (one-letter code).
+        start : int, optional
+            The starting index of the sequence to analyze (default is 0).
+        end : int, optional
+            The ending index of the sequence to analyze (default is None, meaning full sequence).
+
+        Returns:
+        -------
+        dict
+            A dictionary where keys are codons and values are their relative frequency.
+
+        Raises:
+        ------
+        ValueError
+            If an invalid amino acid is provided.
+        """
+        self.__check_indices(start, end)
+        amino_acid = amino_acid.upper()
+        if not amino_acid in VALID_AMINO_ACIDS:
+            raise ValueError("Invalid amino acid")
+        if end is None:
+            end = self.__length
+        codon_counts = defaultdict(int)
+        total_codons = 0
+        for i in range(start, end-2, 3):
+            codon = self.__seq[i:i+3]
+            if CODON_TABLE[self.__seq_type][codon] == amino_acid:
+                codon_counts[codon] += 1
+                total_codons += 1
+        codon_frequency = dict(codon_counts)
+        if total_codons != 0:
+            for codon in codon_frequency:
+                codon_frequency[codon] /= total_codons
+        return codon_frequency
+
+
+
 
 
 
