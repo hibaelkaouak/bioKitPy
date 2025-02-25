@@ -1,4 +1,4 @@
-from dataclasses import replace
+import itertools
 
 from .structure import *
 import random
@@ -9,7 +9,7 @@ class Sequence:
 
     This class allows you to store, validate, and manipulate DNA or RNA sequences.
     '''
-    def __init__(self, seq=None, seq_type='DNA', label='No Label', length=20):
+    def __init__(self, seq=None, seq_type='DNA', length=20, label='No Label'):
         """
         Initializes a Sequence object.
         If `seq` is None, a random sequence of length `length` is generated.
@@ -32,6 +32,7 @@ class Sequence:
             if not isinstance(length, int) or length <= 0:
                 raise ValueError("Length must be a positive integer greater than 0.")
             self.__seq = ''.join(random.choices(VALID_NUCLEOTIDES[self.__seq_type], k=length))
+            print(self.__seq)
         else:
             self.__seq = seq.upper()
             if not self.__validate():
@@ -52,6 +53,12 @@ class Sequence:
         if end is not None and start >= end:
             raise ValueError("Start must be less than end")
 
+    def __str__(self):
+        return f"{self.__seq}"
+
+    def __repr__(self):
+        return f"{self.__seq}"
+
     def get_info(self):
         """Returns information about the sequence."""
         return (f"Label: {self.label}\n"
@@ -63,6 +70,9 @@ class Sequence:
     def get_seq_type(self):
         """Returns the type of the sequence (DNA or RNA)."""
         return (f"Type: {self.__seq_type}")
+
+    def get_seq(self):
+        return self.__seq
 
     def count_nucleotides(self, start=0, end=None):
         """Counts the occurrences of each nucleotide in the sequence."""
@@ -151,6 +161,74 @@ class Sequence:
             for codon in codon_frequency:
                 codon_frequency[codon] /= total_codons
         return codon_frequency
+
+    def locate_motif(self, motif, start=0, end=None):
+        self.__check_indices(start, end)
+        if end is None:
+            end = self.__length
+        motif_len = len(motif)
+        if motif_len > len(self.__seq[start:end]):
+            raise ValueError(f"Motif length ({motif_len}) exceeds selected sequence length ({len(self.__seq[start:end])}).")
+        positions = []
+        for i in range(start, end):
+            if self.__seq[i] == motif[0]:
+                if self.__seq[i:i+motif_len] == motif:
+                    positions.append(i+1)
+        return positions
+
+    @staticmethod
+    def find_consensus(sequences, type):
+        matrix = []
+        number_collums = sequences[0].__length
+        for seq in sequences:
+            if number_collums != seq.__length:
+                raise ValueError()
+            matrix.append(seq.__seq)
+        number_rows = len(matrix)
+
+        matrix_output = []
+        for j in range(number_collums):
+            current_collum = ''
+            for i in range(number_rows):
+                current_collum += matrix[i][j]
+            matrix_output.append({nuc: current_collum.count(nuc) for nuc in VALID_NUCLEOTIDES[type]})
+        print(''.join([max(dict,key=dict.get) for dict in matrix_output]))
+        for nucl in VALID_NUCLEOTIDES[type]:
+            string_output = nucl + ": "
+            string_output += ' '.join([str(matrix_output[col][nucl]) for col in range(number_collums)])
+            print(string_output)
+
+    #@staticmethod
+    #def rabbits(n, k):
+        #f n == 1 or n == 2:
+            #return 1
+        #curr, prev = 1, 1
+        #for _ in range(3, n + 1):
+            #prev, curr = curr, curr + k * prev
+        #return(curr)
+
+    @staticmethod
+    def build_overlap_graph(sequences, k=3):
+        if k <= 0:
+            raise ValueError("k must be a positive integer")
+        edges = defaultdict(list)
+        for s_id, t_id in itertools.combinations(sequences, 2):
+            if sequences[s_id].__length < k or sequences[t_id].__length < k:
+                raise ValueError(f"Sequences '{s_id}' or '{t_id}' are shorter than k={k}. Required: k ≤ sequence length.")
+            s, t = sequences[s_id].__seq, sequences[t_id].__seq
+            if s[-k:] == t[:k]:
+                edges[s_id].append(t_id)
+            if t[-k:] == s[:k]:
+                edges[t_id].append(s_id)
+        for start_node, adj_list in edges.items():
+            for end_node in adj_list:
+                print(f"{start_node} {end_node}")
+        return edges
+
+
+
+
+
 
 
 

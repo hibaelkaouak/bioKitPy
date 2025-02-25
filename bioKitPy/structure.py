@@ -1,6 +1,6 @@
 # Dictionary of valid nucleotides for DNA and RNA
-VALID_NUCLEOTIDES = {'DNA': ['A', 'T', 'C', 'G'],
-                     'RNA': ['A', 'U', 'C', 'G']
+VALID_NUCLEOTIDES = {'DNA': ['A', 'C', 'G', 'T'],
+                     'RNA': ['A', 'C', 'G', 'U']
 }
 
 # Dictionary for DNA complement mapping
